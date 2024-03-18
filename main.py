@@ -47,15 +47,51 @@ def train_model():
 
 
 def detect_faces(img):
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     face = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_frontalface_alt.xml')
     face = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_frontalface_alt2.xml')
 
-    # eyes = face.detectMultiScale(img,1.001,4)
-    # eyes = face.detectMultiScale(img,1.01,7)
-    faces = face.detectMultiScale(img, 1.1, 11)
+    # eyes = face.detectMultiScale(img_gray,1.001,4)
+    # eyes = face.detectMultiScale(img_gray,1.01,7)
+    faces = face.detectMultiScale(img_gray, 1.1, 11)
     print(faces)
-    
+    print(len(faces))
+    for (x,y,w,h) in faces:
+        face = img[y-20:y+h+20,x-20:x+w+20]
+        # cv2.imshow('ree',face)
+        # cv2.waitKey()
+        if recognize_face(face):
+            print('Vitya')
+        else:
+            print('not vitya')
 
+
+def recognize_face(face):
+    # data = pickle.loads(open('my_encoding.pickle', 'rb').read())
+    picture_of_me = face_recognition.load_image_file("5.png")
+    my_face_encoding = face_recognition.face_encodings(picture_of_me)[0]
+
+    # unknown_picture = face_recognition.load_image_file(face)
+    face_locations = face_recognition.face_locations(face)
+    if len(face_locations) != 1:
+        print('syka')
+    top, right, bottom, left = face_locations[0]
+
+    face_image = face[top:bottom, left:right]
+
+    face_encodings = face_recognition.face_encodings(face_image)
+
+    # Проверяем, что лицо было успешно закодировано
+    if not face_encodings:
+        print('net lica')
+
+    # Берем первую кодировку лица
+    new_face = face_encodings[0]
+
+    # new_face = face_recognition.face_encodings(face)[0]
+    # result = face_recognition.compare_faces(data['encoding'],new_face)
+    result = face_recognition.compare_faces(my_face_encoding,new_face)
+    return result
 
 
 
@@ -69,12 +105,10 @@ def detect_faces(img):
 #
 #
 # # img = cv2.imread('stock.png')
-img = cv2.imread('8.png')
-#
-img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#
+img = cv2.imread('18.png')
+##
 
-detect_faces(img_gray)
+detect_faces(img)
 # # eyes = face.detectMultiScale(img_gray,1.001,4)
 # eyes = face.detectMultiScale(img_gray,1.01,7)
 # # eyes = face.detectMultiScale(img_gray, 1.1, 11)
