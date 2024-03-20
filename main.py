@@ -72,6 +72,7 @@ def detect_faces(img):
         # cv2.imwrite(face_name, face) # временно
         if recognize_face(face):  # если вырезанное лицо совпадает с моим
             print('Vitya')
+            eyes = find_eyes(face)
 
             break
         else:
@@ -91,6 +92,24 @@ def recognize_face(face):
     # print('face_enc:', face_enc)
     result = face_recognition.compare_faces(data['encoding'], face_enc)
     return result[0]
+
+
+def find_eyes(cv2img):
+    eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye.xml')
+    # eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye_tree_eyeglasses.xml')
+    img_gray = cv2.cvtColor(cv2img, cv2.COLOR_BGR2GRAY)
+    eyes = eye_cascade.detectMultiScale(img_gray, 1.1, 11)
+    # eyes = eye_cascade.detectMultiScale(img_gray,1.001,4)
+    # eyes = eye_cascade.detectMultiScale(img_gray,1.01,7)
+    print(eyes)
+    for (x, y, w, h) in eyes:
+        cv2.rectangle(cv2img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+        eyecentre = (int(x + w / 2), int(y + h / 2))
+        # print(f'Середина глаза: {eyecentre}')
+        cv2.circle(cv2img, center=eyecentre, radius=5, color=[0, 255, 0])
+    cv2.imshow('ree', cv2img)  # показать обрезанное лицо
+    cv2.waitKey()  # не закрывать его
+
 
 
 # # face = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye.xml')
@@ -123,7 +142,7 @@ def recognize_face(face):
 def main():
     # загрузка фотографии для сравнения
 
-    img = '82.png'
+    img = '2.png'
 
     # print(train_model(img_gray))
     detect_faces(img)
