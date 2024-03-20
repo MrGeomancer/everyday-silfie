@@ -1,9 +1,8 @@
 import cv2
 import os
-import numpy as np
-import math
 import face_recognition
 import pickle
+
 
 
 def dataset_get_ready():
@@ -46,8 +45,10 @@ def train_model():
 
 
 def detect_faces(img):
+    cv2img = cv2.imread(img)
     # превращение фотографии в серую для работы с ней
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img_gray = cv2.cvtColor(cv2img, cv2.COLOR_BGR2GRAY)
+
     # подгрузка модели обнаружения лиц alt-2 работает получше
     # face = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_frontalface_alt.xml')
     face = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_alt2.xml')
@@ -58,41 +59,37 @@ def detect_faces(img):
     faces = face.detectMultiScale(img_gray, 1.1, 11)
     print(faces)  # выводит координаты (x,y,w,h)
     print(len(faces))  # выводит кол-во лиц
-
+    i=0
     # для каждого найденного лица
     for (x, y, w, h) in faces:
         if x < 50: x = 50  # если x находится близко к краю, то сделать его подальше
         if y < 50: y = 50  # если y находится близко к краю, то сделать его подальше
-        face = img[y - 50:y + h + 50, x - 50:x + w + 50]
-        cv2.imshow('ree', face)  # показать обрезанное лицо
-        cv2.waitKey()  # не закрывать его
-        cv2.imwrite('84.png', face)
+        face = cv2img[y - 50:y + h + 50, x - 50:x + w + 50]
+        # cv2.imshow('ree', face)  # показать обрезанное лицо
+        # cv2.waitKey()  # не закрывать его
+        # face_name = f'{img}({i}).png'
+        # i += 1
+        # cv2.imwrite(face_name, face) # временно
         if recognize_face(face):  # если вырезанное лицо совпадает с моим
             print('Vitya')
+
+            break
         else:
             print('not vitya')
 
 
 def recognize_face(face):
+    face2=cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
     # подгрузить датасет моих лиц
     data = pickle.loads(open('my_encoding.pickle', 'rb').read())
-    
-    face2_img = face_recognition.load_image_file(f'84.png')
-    face2_enc = face_recognition.face_encodings(face2_img)[0]
-
-    print('face2_img:', face2_img)
-    print('face:', face)
-    print('face2_img type:', type(face2_img))
-    print('face type:', type(face))
-    face_enc = face_recognition.face_encodings(face)[0]
+    # print('face2_img:', face2_img)
+    # print('face:', face)
+    # print('face2_img type:', type(face2_img))
+    # print('face type:', type(face))
+    face_enc = face_recognition.face_encodings(face2)[0]
     # print('face2_enc:', face2_enc)
     # print('face_enc:', face_enc)
-    result = face_recognition.compare_faces(data['encoding'], face2_enc)
-    if result[0]:
-        print("Same person!")
-    else:
-        print("Another person!")
-
+    result = face_recognition.compare_faces(data['encoding'], face_enc)
     return result[0]
 
 
@@ -125,7 +122,8 @@ def recognize_face(face):
 
 def main():
     # загрузка фотографии для сравнения
-    img = cv2.imread('82.png')
+
+    img = '82.png'
 
     # print(train_model(img_gray))
     detect_faces(img)
