@@ -73,10 +73,17 @@ def detect_faces(img):
         if recognize_face(face):  # если вырезанное лицо совпадает с моим
             print('Vitya')
             eyes = find_eyes(face)
-
+            print(eyes)
+            print(f"Середина глаз: x:{eyes[0][0]+x-50},y:{eyes[0][1]+y-50}, x:{eyes[1][0]+x-50},y:{eyes[1][1]+y-50}")
+            cv2.circle(cv2img, center=(eyes[0][0]+x-50,eyes[0][1]+y-50), radius=5, color=[255, 255, 0])
+            cv2.circle(cv2img, center=(eyes[1][0]+x-50,eyes[1][1]+y-50), radius=5, color=[255, 255, 0])
+            centre_eyes(eyes)
             break
         else:
             print('not vitya')
+    cv2.imshow('ree', cv2img)  # показать обрезанное лицо
+    cv2.waitKey()  # не закрывать его
+
 
 
 def recognize_face(face):
@@ -101,16 +108,21 @@ def find_eyes(cv2img):
     eyes = eye_cascade.detectMultiScale(img_gray, 1.1, 11)
     # eyes = eye_cascade.detectMultiScale(img_gray,1.001,4)
     # eyes = eye_cascade.detectMultiScale(img_gray,1.01,7)
+    eyes_centre=[]
     print(eyes)
     for (x, y, w, h) in eyes:
         cv2.rectangle(cv2img, (x, y), (x + w, y + h), (255, 0, 0), 2)
         eyecentre = (int(x + w / 2), int(y + h / 2))
         # print(f'Середина глаза: {eyecentre}')
-        cv2.circle(cv2img, center=eyecentre, radius=5, color=[0, 255, 0])
-    cv2.imshow('ree', cv2img)  # показать обрезанное лицо
-    cv2.waitKey()  # не закрывать его
+        eyes_centre.append(eyecentre)
+        # cv2.circle(cv2img, center=eyecentre, radius=5, color=[0, 255, 0])
+    # cv2.imshow('ree', cv2img)  # показать обрезанное лицо
+    # cv2.waitKey()  # не закрывать его
+    print('писька')
+    return eyes_centre
 
 
+stock_eyes = {'x1':1032,'y1':470,'x2':836,'y2':470}
 
 # # face = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye.xml')
 # # face = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye_tree_eyeglasses.xml')
@@ -142,7 +154,7 @@ def find_eyes(cv2img):
 def main():
     # загрузка фотографии для сравнения
 
-    img = '2.png'
+    img = 'stock.png'
 
     # print(train_model(img_gray))
     detect_faces(img)
