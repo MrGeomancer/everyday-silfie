@@ -2,6 +2,7 @@ import cv2
 import os
 import face_recognition
 import pickle
+from PIL import Image
 
 
 
@@ -77,7 +78,7 @@ def detect_faces(img):
             print(f"Середина глаз: x:{eyes[0][0]+x-50},y:{eyes[0][1]+y-50}, x:{eyes[1][0]+x-50},y:{eyes[1][1]+y-50}")
             cv2.circle(cv2img, center=(eyes[0][0]+x-50,eyes[0][1]+y-50), radius=5, color=[255, 255, 0])
             cv2.circle(cv2img, center=(eyes[1][0]+x-50,eyes[1][1]+y-50), radius=5, color=[255, 255, 0])
-            centre_eyes(eyes)
+            cv2img = centre_eyes(eyes, img)
             break
         else:
             print('not vitya')
@@ -122,6 +123,43 @@ def find_eyes(cv2img):
     return eyes_centre
 
 
+def centre_eyes(eyes,img):
+    global stock_eyes
+    from math import tan, pi, atan,sqrt
+    x1=eyes[1][0]
+    y1=eyes[1][1]
+    x2=eyes[0][0]
+    y2=eyes[0][1]
+    y_eyes = [eyes[0][1],eyes[1][1]]
+    ygol=atan((y2-y1)/(x2-x1))
+    tograd = (180/pi)
+
+    # (h, w) = img.shape[:2]
+    # center = (x1, y1)
+    # M = cv2.getRotationMatrix2D(center, ygol*tograd, 1 )
+    # img = cv2.warpAffine(img, M, (w, h))
+
+    # cv2.imshow('re2e', img)  # показать обрезанное лицо
+    # cv2.waitKey()  # не закрывать его
+
+
+    im1 = Image.open(img)
+    im1= im1.rotate(angle=ygol*tograd,center = (x1, y1))
+    distance_between_eyes = abs(x2 - x1)
+    shift_x = stock_eyes['x1'] - x1
+    shift_y = stock_eyes['y1'] - y1
+    im1 = im1.transform(im1.size, Image.AFFINE, (1, 0, shift_x, 0, 1, shift_y))
+    im1.show()
+
+
+
+    print('ygol:', ygol * tograd)
+    print('ygol 45:',tan(1/1))
+    print('ygol 45:',atan(1/1)* tograd)
+
+    return img
+
+
 stock_eyes = {'x1':1032,'y1':470,'x2':836,'y2':470}
 
 # # face = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye.xml')
@@ -154,7 +192,9 @@ stock_eyes = {'x1':1032,'y1':470,'x2':836,'y2':470}
 def main():
     # загрузка фотографии для сравнения
 
-    img = 'stock.png'
+    # img = 'stock.png'
+    img = '92.png'
+    # img = '52.jpg'
 
     # print(train_model(img_gray))
     detect_faces(img)
