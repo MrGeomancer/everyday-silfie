@@ -145,11 +145,23 @@ def centre_eyes(eyes,img):
 
     im1 = Image.open(img)
     im1= im1.rotate(angle=ygol*tograd,center = (x1, y1))
-    distance_between_eyes = abs(x2 - x1)
+    distance_between_eyes = ((x2 - x1)**2)**0.5
     shift_x = stock_eyes['x1'] - x1
     shift_y = stock_eyes['y1'] - y1
-    im1 = im1.transform(im1.size, Image.AFFINE, (1, 0, shift_x, 0, 1, shift_y))
-    im1.show()
+    stock_distance = ((stock_eyes['x1'] - stock_eyes['x2'])**2)**0.5
+    scale = stock_distance/distance_between_eyes
+    print('stock dist:', stock_distance)
+    print('dist:', distance_between_eyes)
+    print('scale:', scale)
+    canvas = Image.new("RGB", im1.size)
+    # scaled_image = original_image.resize((int(original_image.width * scale_factor), int(original_image.height * scale_factor)))
+    im1 = im1.resize((int(im1.width*scale), int(im1.height * scale)))
+    shift_x = stock_eyes['x1'] - x1 * scale
+    shift_y = stock_eyes['y1'] - y1 * scale
+    # Вставляем масштабированное изображение на новое изображение с учетом сдвига
+    canvas.paste(im1,(int(shift_x), int(shift_y)))
+    # im1 = im1.transform(im1.size, Image.AFFINE, (1, 0, shift_x, 0, 1, shift_y))
+    canvas.show()
 
 
 
@@ -193,7 +205,7 @@ def main():
     # загрузка фотографии для сравнения
 
     # img = 'stock.png'
-    img = '92.png'
+    img = '93.png'
     # img = '52.jpg'
 
     # print(train_model(img_gray))
