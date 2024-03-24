@@ -148,7 +148,7 @@ def centre_eyes(eyes,img):
 
 
     im1 = Image.open(img)
-    canvas = Image.new("RGB", im1.size)
+    canvas = Image.new("RGB", (1920,1080))
     # Вставляем масштабированное изображение на новое изображение с учетом сдвига
     # canvas.paste(im1,(int(shift_x), int(shift_y)))
     im2 = Image.open(r'C:\Users\Pekarnya\Downloads\unnamed.png')
@@ -216,8 +216,8 @@ def main():
     # загрузка фотографии для сравнения
 
     # img = 'stock.png'
-    img = '93.png'
-    # img = '52.jpg'
+    # img = '93.png'
+    img = '100.jpg'
 
     # print(train_model(img_gray))
     detect_faces(img)
