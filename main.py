@@ -74,10 +74,11 @@ def detect_faces(img):
         if recognize_face(face):  # если вырезанное лицо совпадает с моим
             print('Vitya')
             eyes = find_eyes(face)
-            print(eyes)
-            print(f"Середина глаз: x:{eyes[0][0]+x-50},y:{eyes[0][1]+y-50}, x:{eyes[1][0]+x-50},y:{eyes[1][1]+y-50}")
-            cv2.circle(cv2img, center=(eyes[0][0]+x-50,eyes[0][1]+y-50), radius=5, color=[255, 255, 0])
-            cv2.circle(cv2img, center=(eyes[1][0]+x-50,eyes[1][1]+y-50), radius=5, color=[255, 255, 0])
+            print('eyes in detect_faces:', eyes)
+            print(f"Середина глаз: x:{eyes['x1']+x-50},y:{eyes['y1']+y-50}, x:{eyes['x2']+x-50},y:{eyes['y2']+y-50}")
+            eyes.update({'x1':eyes['x1']+x-50,'y1':eyes['y1']+y-50,'x2':eyes['x2']+x-50,'y2':eyes['y2']+y-50})
+            # cv2.circle(cv2img, center=(eyes[0][0]+x-50,eyes[0][1]+y-50), radius=5, color=[255, 255, 0])
+            # cv2.circle(cv2img, center=(eyes[1][0]+x-50,eyes[1][1]+y-50), radius=5, color=[255, 255, 0])
             cv2img = centre_eyes(eyes, img)
             break
         else:
@@ -110,7 +111,7 @@ def find_eyes(cv2img):
     # eyes = eye_cascade.detectMultiScale(img_gray,1.001,4)
     # eyes = eye_cascade.detectMultiScale(img_gray,1.01,7)
     eyes_centre=[]
-    print(eyes)
+    print('eyes:',eyes)
     for (x, y, w, h) in eyes:
         cv2.rectangle(cv2img, (x, y), (x + w, y + h), (255, 0, 0), 2)
         eyecentre = (int(x + w / 2), int(y + h / 2))
@@ -119,18 +120,21 @@ def find_eyes(cv2img):
         # cv2.circle(cv2img, center=eyecentre, radius=5, color=[0, 255, 0])
     # cv2.imshow('ree', cv2img)  # показать обрезанное лицо
     # cv2.waitKey()  # не закрывать его
-    print('писька')
-    return eyes_centre
+    if eyes_centre[0][0] > eyes_centre[1][0]:
+        eyes_dict = {'x1':eyes_centre[1][0], 'y1':eyes_centre[1][1],'x2':eyes_centre[0][0], 'y2':eyes_centre[0][1]}
+    else:
+        eyes_dict = {'x1':eyes_centre[0][0], 'y1':eyes_centre[0][1],'x2':eyes_centre[1][0], 'y2':eyes_centre[1][1]}
+    return eyes_dict
 
 
 def centre_eyes(eyes,img):
     global stock_eyes
     from math import tan, pi, atan,sqrt
-    x1=eyes[1][0]
-    y1=eyes[1][1]
-    x2=eyes[0][0]
-    y2=eyes[0][1]
-    y_eyes = [eyes[0][1],eyes[1][1]]
+
+    x1=eyes['x1']
+    y1=eyes['y1']
+    x2=eyes['x2']
+    y2=eyes['y2']
     ygol=atan((y2-y1)/(x2-x1))
     tograd = (180/pi)
 
@@ -144,23 +148,30 @@ def centre_eyes(eyes,img):
 
 
     im1 = Image.open(img)
+    canvas = Image.new("RGB", im1.size)
+    # Вставляем масштабированное изображение на новое изображение с учетом сдвига
+    # canvas.paste(im1,(int(shift_x), int(shift_y)))
+    im2 = Image.open(r'C:\Users\Pekarnya\Downloads\unnamed.png')
+
     im1= im1.rotate(angle=ygol*tograd,center = (x1, y1))
     distance_between_eyes = ((x2 - x1)**2)**0.5
-    shift_x = stock_eyes['x1'] - x1
-    shift_y = stock_eyes['y1'] - y1
+
     stock_distance = ((stock_eyes['x1'] - stock_eyes['x2'])**2)**0.5
     scale = stock_distance/distance_between_eyes
     print('stock dist:', stock_distance)
     print('dist:', distance_between_eyes)
     print('scale:', scale)
-    canvas = Image.new("RGB", im1.size)
-    # scaled_image = original_image.resize((int(original_image.width * scale_factor), int(original_image.height * scale_factor)))
+    shift_x = stock_eyes['x1'] - x1*scale
+    shift_y = stock_eyes['y1'] - y1*scale
+    print('shift_x:', shift_x)
+    print('shift_y:', shift_y)
     im1 = im1.resize((int(im1.width*scale), int(im1.height * scale)))
-    shift_x = stock_eyes['x1'] - x1 * scale
-    shift_y = stock_eyes['y1'] - y1 * scale
-    # Вставляем масштабированное изображение на новое изображение с учетом сдвига
-    canvas.paste(im1,(int(shift_x), int(shift_y)))
+    canvas.paste(im1, (int(shift_x), int(shift_y)))
+    # scaled_image = original_image.resize((int(original_image.width * scale_factor), int(original_image.height * scale_factor)))
+    # im1 = im1.resize((int(im1.width*scale), int(im1.height * scale)))
+
     # im1 = im1.transform(im1.size, Image.AFFINE, (1, 0, shift_x, 0, 1, shift_y))
+    # im1.show()
     canvas.show()
 
 
@@ -172,7 +183,7 @@ def centre_eyes(eyes,img):
     return img
 
 
-stock_eyes = {'x1':1032,'y1':470,'x2':836,'y2':470}
+stock_eyes = {'x1':836,'y1':470,'x2':1032,'y2':470}
 
 # # face = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye.xml')
 # # face = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye_tree_eyeglasses.xml')
