@@ -115,7 +115,7 @@ def find_eyes(cv2img):
     for (x, y, w, h) in eyes:
         cv2.rectangle(cv2img, (x, y), (x + w, y + h), (255, 0, 0), 2)
         eyecentre = (int(x + w / 2), int(y + h / 2))
-        # print(f'Середина глаза: {eyecentre}')
+        print(f'Середина глаза: {eyecentre}')
         eyes_centre.append(eyecentre)
         # cv2.circle(cv2img, center=eyecentre, radius=5, color=[0, 255, 0])
     # cv2.imshow('ree', cv2img)  # показать обрезанное лицо
@@ -173,6 +173,8 @@ def centre_eyes(eyes,img):
     # im1 = im1.transform(im1.size, Image.AFFINE, (1, 0, shift_x, 0, 1, shift_y))
     # im1.show()
     canvas.show()
+    global i
+    canvas.save(f'{i}.png')
 
 
 
@@ -184,6 +186,7 @@ def centre_eyes(eyes,img):
 
 
 stock_eyes = {'x1':836,'y1':470,'x2':1032,'y2':470}
+i=0
 
 # # face = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye.xml')
 # # face = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye_tree_eyeglasses.xml')
@@ -217,12 +220,24 @@ def main():
 
     # img = 'stock.png'
     # img = '93.png'
-    img = '100.jpg'
+    img = '110.jpg'
 
     # print(train_model(img_gray))
-    detect_faces(img)
+    # detect_faces(img)
     # recognize_face(img)
-
+    directory = 'empty/'
+    global i
+    i=0
+    # Перебираем файлы в директории
+    for filename in os.listdir(directory):
+        # Полный путь к файлу
+        filepath = os.path.join(directory, filename)
+        # Проверяем, является ли объект файлом
+        if os.path.isfile(filepath):
+            # Делаем что-то с файлом
+            print(f'{i}Работаем с файлом ')
+            detect_faces(filepath)
+            i+=1
 
 if __name__ == '__main__':
     main()
