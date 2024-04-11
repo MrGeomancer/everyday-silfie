@@ -46,6 +46,7 @@ def train_model():
 
 
 def detect_faces(img):
+    global imgnum
     cv2img = cv2.imread(img)
     # превращение фотографии в серую для работы с ней
     img_gray = cv2.cvtColor(cv2img, cv2.COLOR_BGR2GRAY)
@@ -58,8 +59,9 @@ def detect_faces(img):
     # faces = face.detectMultiScale(img_gray,1.001,4)
     # faces = face.detectMultiScale(img_gray,1.01,7)
     faces = face.detectMultiScale(img_gray, 1.1, 11)
-    print(faces)  # выводит координаты (x,y,w,h)
-    print(len(faces))  # выводит кол-во лиц
+    print(f'[{imgnum}] Лиц найдено:{len(faces)}')  # выводит кол-во лиц
+    print(f'[{imgnum}] Координаты найденных лиц: {faces}')  # выводит координаты (x,y,w,h)
+
     i=0
     # для каждого найденного лица
     for (x, y, w, h) in faces:
@@ -72,7 +74,9 @@ def detect_faces(img):
         # i += 1
         # cv2.imwrite(face_name, face) # временно
         if recognize_face(face):  # если вырезанное лицо совпадает с моим
-            print('Vitya')
+            print(f'[{imgnum}] Лицо принадлежит:  Vitya')
+            cv2.imshow('ree', cv2img)  # показать обрезанное лицо
+            cv2.waitKey()
             eyes = find_eyes(face)
             print('eyes in detect_faces:', eyes)
             print(f"Середина глаз: x:{eyes['x1']+x-50},y:{eyes['y1']+y-50}, x:{eyes['x2']+x-50},y:{eyes['y2']+y-50}")
@@ -108,10 +112,13 @@ def find_eyes(cv2img):
     # eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye_tree_eyeglasses.xml')
     img_gray = cv2.cvtColor(cv2img, cv2.COLOR_BGR2GRAY)
     eyes = eye_cascade.detectMultiScale(img_gray, 1.1, 11)
-    # eyes = eye_cascade.detectMultiScale(img_gray,1.001,4)
-    # eyes = eye_cascade.detectMultiScale(img_gray,1.01,7)
+    # eyes = eye_cascade.detectMultiScale(img_gray, 1.01, 7)
+    print('eyes1:', eyes)
+    if eyes == []: eyes = eye_cascade.detectMultiScale(img_gray,1.01,7)
+    print('eyes2:', eyes)
+    if eyes == []: eyes = eye_cascade.detectMultiScale(img_gray, 1.001, 4)
     eyes_centre=[]
-    print('eyes:',eyes)
+    print('eyes3:',eyes)
     for (x, y, w, h) in eyes:
         cv2.rectangle(cv2img, (x, y), (x + w, y + h), (255, 0, 0), 2)
         eyecentre = (int(x + w / 2), int(y + h / 2))
@@ -173,10 +180,6 @@ def centre_eyes(eyes,img):
     # im1 = im1.transform(im1.size, Image.AFFINE, (1, 0, shift_x, 0, 1, shift_y))
     # im1.show()
     canvas.show()
-    global i
-    canvas.save(f'{i}.png')
-
-
 
     print('ygol:', ygol * tograd)
     print('ygol 45:',tan(1/1))
@@ -216,18 +219,23 @@ i=0
 
 
 def main():
+    global imgnum
+    imgnum = 0
     # загрузка фотографии для сравнения
 
     # img = 'stock.png'
     # img = '93.png'
     img = '110.jpg'
+    # img = '01.png'
 
     # print(train_model(img_gray))
     # detect_faces(img)
     # recognize_face(img)
+
+
+
     directory = 'empty/'
-    global i
-    i=0
+
     # Перебираем файлы в директории
     for filename in os.listdir(directory):
         # Полный путь к файлу
@@ -235,9 +243,9 @@ def main():
         # Проверяем, является ли объект файлом
         if os.path.isfile(filepath):
             # Делаем что-то с файлом
-            print(f'{i}Работаем с файлом ')
+            print(f"[{imgnum}] Работаем с файлом '{filename}'")
             detect_faces(filepath)
-            i+=1
+            imgnum+=1
 
 if __name__ == '__main__':
     main()
