@@ -2,8 +2,9 @@ import cv2
 import os
 import face_recognition
 import pickle
-from PIL import Image
+from PIL import Image, ImageTk
 
+import tkinter as tk
 
 
 def dataset_get_ready():
@@ -75,7 +76,8 @@ def detect_faces(img):
         # cv2.imwrite(face_name, face) # временно
         if recognize_face(face):  # если вырезанное лицо совпадает с моим
             print(f'[{imgnum}] Лицо принадлежит:  Vitya')
-            cv2.imshow('ree', cv2img)  # показать обрезанное лицо
+            # cv2.imshow('ree', cv2img)  # показать обрезанное лицо
+            cv2.imshow('ree', face)  # показать обрезанное лицо
             cv2.waitKey()
             eyes = find_eyes(face)
             print('eyes in detect_faces:', eyes)
@@ -107,26 +109,55 @@ def recognize_face(face):
     return result[0]
 
 
+def on_click(event):
+    global eyes, canvas, root
+    eyes.append((event.x, event.y))
+    canvas.create_oval(event.x - 5, event.y - 5, event.x + 5, event.y + 5, fill="red")
+    if len(eyes) == 2:
+        root.quit()
+
+
 def find_eyes(cv2img):
+    global imgnum
     eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye.xml')
     # eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye_tree_eyeglasses.xml')
     img_gray = cv2.cvtColor(cv2img, cv2.COLOR_BGR2GRAY)
     eyes = eye_cascade.detectMultiScale(img_gray, 1.1, 11)
     # eyes = eye_cascade.detectMultiScale(img_gray, 1.01, 7)
     print('eyes1:', eyes)
-    if eyes == []: eyes = eye_cascade.detectMultiScale(img_gray,1.01,7)
-    print('eyes2:', eyes)
-    if eyes == []: eyes = eye_cascade.detectMultiScale(img_gray, 1.001, 4)
+    print('eyes1 type:', type(eyes))
+    if type(eyes) is tuple:
+        print(f'[{imgnum}] Глаз с коэффициентами 1.1, 11 не было найдено. Применяем 1.01, 7')
+        eyes = eye_cascade.detectMultiScale(img_gray,1.01,7)
+        if type(eyes) is tuple:
+            print(f'[{imgnum}] Глаз с коэффициентами 1.01, 7 не было найдено. Применяем 1.001, 4')
+            eyes = eye_cascade.detectMultiScale(img_gray, 1.001, 4)
+        print(f'[{imgnum}] Было найдено {len(eyes)} глаз. Придется вручную выбрать координаты зрачков')
+    # print('eyes2:', eyes)
+    # print('eyes2 type:', type(eyes))
     eyes_centre=[]
-    print('eyes3:',eyes)
+    # print('eyes3:',eyes)
     for (x, y, w, h) in eyes:
         cv2.rectangle(cv2img, (x, y), (x + w, y + h), (255, 0, 0), 2)
         eyecentre = (int(x + w / 2), int(y + h / 2))
         print(f'Середина глаза: {eyecentre}')
         eyes_centre.append(eyecentre)
-        # cv2.circle(cv2img, center=eyecentre, radius=5, color=[0, 255, 0])
-    # cv2.imshow('ree', cv2img)  # показать обрезанное лицо
-    # cv2.waitKey()  # не закрывать его
+        cv2.circle(cv2img, center=eyecentre, radius=5, color=[0, 255, 0])
+    cv2.imshow('glaza', cv2img)  # показать обрезанное лицо
+    cv2.waitKey()  # не закрывать его
+    global eyes, canvas, root
+    image = cv2.cvtColor(cv2img, cv2.COLOR_BGR2RGB)
+    image_pil = Image.fromarray(image)
+    root = tk.Tk()
+    root.geometry('600x600')
+    canvas = tk.Canvas(root, bg='white', height=600, width=600)
+    canvas.pack()
+    canvas.bind("<Button-1>", on_click)
+    # test = PhotoImage(cv2img)
+    test=ImageTk.PhotoImage(image_pil)
+    canvas.create_image(0, 0, anchor=tk.NW, image=test)
+    root.mainloop()
+
     if eyes_centre[0][0] > eyes_centre[1][0]:
         eyes_dict = {'x1':eyes_centre[1][0], 'y1':eyes_centre[1][1],'x2':eyes_centre[0][0], 'y2':eyes_centre[0][1]}
     else:
@@ -225,11 +256,13 @@ def main():
 
     # img = 'stock.png'
     # img = '93.png'
-    img = '110.jpg'
-    # img = '01.png'
+    # img = '110.jpg'
+    img = '01.png'
 
     # print(train_model(img_gray))
-    # detect_faces(img)
+
+    detect_faces(img)
+
     # recognize_face(img)
 
 
