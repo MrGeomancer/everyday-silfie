@@ -328,7 +328,8 @@ def centre_eyes(eyes,img):
     # im1.show()
     # canvas.show()
     global imgnum
-    canvas.save(fr"08'19\{imgnum}.png")
+    os.makedirs('08-19', exist_ok=True)
+    canvas.save(fr"08-19\{imgnum:02}.png")
 
     # print('ygol:', ygol * tograd)
     # print('ygol 45:',tan(1/1))
@@ -369,7 +370,7 @@ i=0
 
 def main():
     global imgnum
-    imgnum = 0
+    imgnum = 1
     # загрузка фотографии для сравнения
 
     # img = 'stock.png'
